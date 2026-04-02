@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="RentFlow — Personal Rental Income & Property Management App" />
+  <title>RentFlow — Property Manager</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     APP HEADER
+════════════════════════════════════════════ -->
+<header class="app-header">
+  <button class="menu-toggle" id="menuToggle" aria-label="Open menu">☰</button>
+  <a class="logo" href="#">
+    <div class="logo-icon">🏘</div>
+    RentFlow
+  </a>
+  <div class="header-spacer"></div>
+  <button class="header-btn" id="globalAddBtn">
+    <span>+</span> <span>Quick Add</span>
+  </button>
+  <div class="header-avatar" title="Your Account">L</div>
+</header>
+
+<!-- ═══════════════════════════════════════════
+     APP BODY
+════════════════════════════════════════════ -->
+<div class="app-body">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar" id="sidebar">
+    <div style="padding:8px 0 16px">
+      <div class="nav-section">Overview</div>
+      <button class="nav-item active" data-page="dashboard"><span class="ni">📊</span>Dashboard</button>
+
+      <div class="nav-section">Properties</div>
+      <button class="nav-item" data-page="properties"><span class="ni">🏠</span>Properties</button>
+      <button class="nav-item" data-page="tenants"><span class="ni">👤</span>Tenants</button>
+      <button class="nav-item" data-page="leases"><span class="ni">📄</span>Leases</button>
+
+      <div class="nav-section">Finances</div>
+      <button class="nav-item" data-page="payments">
+        <span class="ni">💰</span>Rent Payments
+        <span class="nav-badge" id="badge-payments" style="display:none">0</span>
+      </button>
+      <button class="nav-item" data-page="accounting"><span class="ni">📈</span>Accounting</button>
+
+      <div class="nav-section">Operations</div>
+      <button class="nav-item" data-page="maintenance">
+        <span class="ni">🔧</span>Maintenance
+        <span class="nav-badge amber" id="badge-maint" style="display:none">0</span>
+      </button>
+      <button class="nav-item" data-page="society"><span class="ni">🏗</span>Society Dues</button>
+      <button class="nav-item" data-page="taxes"><span class="ni">🧾</span>Property Tax</button>
+      <button class="nav-item" data-page="documents"><span class="ni">📋</span>Documents</button>
+    </div>
+    <div class="sidebar-footer">
+      <div style="font-size:11px;color:var(--ink4);text-align:center;line-height:1.6">
+        RentFlow v1.0<br>All data saved locally
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN CONTENT ── -->
+  <main class="main">
+
+    <!-- ───────── DASHBOARD ───────── -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-hdr">
+        <div>
+          <h1>Good morning! 👋</h1>
+          <p>Here's your portfolio overview</p>
+        </div>
+        <button class="btn btn-primary" onclick="nav('properties')">View Properties</button>
+      </div>
+
+      <div class="stat-grid" id="dash-stats"></div>
+
+      <div class="two-col" style="margin-bottom:16px">
+        <div class="card" style="margin:0">
+          <div class="card-hdr"><h3>🚨 Alerts &amp; Reminders</h3></div>
+          <div class="alert-list" id="dash-alerts"></div>
+        </div>
+        <div class="card" style="margin:0">
+          <div class="card-hdr"><h3>📊 This Month's Finances</h3></div>
+          <div id="dash-financials"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-hdr">
+          <h3>🏠 Your Properties</h3>
+          <button class="btn btn-secondary btn-sm" onclick="nav('properties')">View All</button>
+        </div>
+        <div class="prop-grid" id="dash-properties" style="margin:0"></div>
+      </div>
+    </div>
+
+    <!-- ───────── PROPERTIES ───────── -->
+    <div class="page" id="page-properties">
+      <div class="page-hdr">
+        <div><h1>Properties</h1><p>Manage your rental units</p></div>
+        <button class="btn btn-primary" onclick="openModal('modal-property')">+ Add Property</button>
+      </div>
+      <div class="prop-grid" id="prop-grid"></div>
+    </div>
+
+    <!-- ───────── TENANTS ───────── -->
+    <div class="page" id="page-tenants">
+      <div class="page-hdr">
+        <div><h1>Tenants</h1><p>All current and past tenants</p></div>
+        <button class="btn btn-primary" onclick="openModal('modal-tenant')">+ Add Tenant</button>
+      </div>
+      <div class="search-bar">
+        <div class="search-input-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Search tenants…" oninput="renderTenants(this.value)" />
+        </div>
+      </div>
+      <div class="card" style="padding:0">
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th><th>Phone</th><th>Property</th>
+                <th>Lease Dates</th><th>Security Deposit</th><th>Status</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="tenant-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── LEASES ───────── -->
+    <div class="page" id="page-leases">
+      <div class="page-hdr">
+        <div><h1>Leases &amp; Agreements</h1><p>Track agreement dates and renewals</p></div>
+        <button class="btn btn-primary" onclick="openModal('modal-lease')">+ New Lease</button>
+      </div>
+      <div class="search-bar">
+        <div class="search-input-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Search leases…" oninput="renderLeases(this.value)" />
+        </div>
+        <select class="filter-select" onchange="renderLeases('',this.value)">
+          <option value="">All Status</option>
+          <option>ACTIVE</option><option>EXPIRED</option><option>TERMINATED</option>
+        </select>
+      </div>
+      <div class="card" style="padding:0">
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Property</th><th>Tenant</th><th>Start</th><th>End</th>
+                <th>Rent/Month</th><th>Deposit</th><th>Status</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="lease-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── PAYMENTS ───────── -->
+    <div class="page" id="page-payments">
+      <div class="page-hdr">
+        <div><h1>Rent Payments</h1><p>Track and record all rent collections</p></div>
+        <button class="btn btn-primary" onclick="openModal('modal-payment')">+ Record Payment</button>
+      </div>
+      <div class="stat-grid" id="payment-stats"></div>
+      <div class="search-bar">
+        <div class="search-input-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Search payments…" oninput="renderPayments(this.value)" />
+        </div>
+        <select class="filter-select" onchange="renderPayments('',this.value)">
+          <option value="">All Status</option>
+          <option>PAID</option><option>PENDING</option><option>OVERDUE</option><option>PARTIAL</option>
+        </select>
+      </div>
+      <div class="card" style="padding:0">
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Property</th><th>Tenant</th><th>Month</th><th>Amount</th>
+                <th>Due Date</th><th>Paid Date</th><th>Mode</th><th>Status</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="payment-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── ACCOUNTING ───────── -->
+    <div class="page" id="page-accounting">
+      <div class="page-hdr">
+        <div><h1>Accounting</h1><p>Income, expenses, and net profit</p></div>
+        <button class="btn btn-primary" onclick="openModal('modal-transaction')">+ Add Transaction</button>
+      </div>
+      <div class="stat-grid" id="accounting-stats"></div>
+      <div class="two-col" style="margin-bottom:16px">
+        <div class="card" style="margin:0">
+          <div class="card-hdr"><h3>📥 Income by Property</h3></div>
+          <div id="income-breakdown"></div>
+        </div>
+        <div class="card" style="margin:0">
+          <div class="card-hdr"><h3>📤 Expenses by Category</h3></div>
+          <div id="expense-breakdown"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><h3>All Transactions</h3></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr><th>Date</th><th>Description</th><th>Property</th><th>Category</th><th>Type</th><th>Amount</th></tr>
+            </thead>
+            <tbody id="txn-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── MAINTENANCE ───────── -->
+    <div class="page" id="page-maintenance">
+      <div class="page-hdr">
+        <div><h1>Maintenance &amp; Repairs</h1><p>Track repair tickets and costs</p></div>
+        <button class="btn btn-primary" onclick="openModal('modal-ticket')">+ New Ticket</button>
+      </div>
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="filterTickets('all',this)">All</button>
+        <button class="tab-btn" onclick="filterTickets('REQUESTED',this)">Requested</button>
+        <button class="tab-btn" onclick="filterTickets('IN_PROGRESS',this)">In Progress</button>
+        <button class="tab-btn" onclick="filterTickets('COMPLETED',this)">Completed</button>
+      </div>
+      <div id="ticket-grid"></div>
+    </div>
+
+    <!-- ───────── SOCIETY ───────── -->
+    <div class="page" id="page-society">
+      <div class="page-hdr">
+        <div><h1>Society Maintenance</h1><p>Quarterly dues and payment tracking</p></div>
+        <button class="btn btn-primary" onclick="openModal('modal-society')">+ Record Payment</button>
+      </div>
+      <div class="card" style="padding:0">
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr><th>Property</th><th>Quarter</th><th>Amount</th><th>Date Paid</th><th>Status</th><th>Confirmed</th><th></th></tr>
+            </thead>
+            <tbody id="society-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── TAXES ───────── -->
+    <div class="page" id="page-taxes">
+      <div class="page-hdr">
+        <div><h1>Property Tax</h1><p>Tax schedules, payments, and receipts</p></div>
+        <button class="btn btn-primary" onclick="openModal('modal-tax')">+ Add Tax Record</button>
+      </div>
+      <div class="card" style="padding:0">
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr><th>Property</th><th>Period</th><th>Due Date</th><th>Amount</th><th>Status</th><th>Paid On</th><th></th></tr>
+            </thead>
+            <tbody id="tax-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────── DOCUMENTS ───────── -->
+    <div class="page" id="page-documents">
+      <div class="page-hdr">
+        <div><h1>Legal Documents</h1><p>Compliance checklist and document vault</p></div>
+        <button class="btn btn-primary" onclick="openModal('modal-document')">+ Upload Document</button>
+      </div>
+      <div id="doc-compliance"></div>
+    </div>
+
+  </main><!-- /main -->
+</div><!-- /app-body -->
+
+<!-- ═══════════════════════════════════════════
+     TOAST NOTIFICATIONS
+════════════════════════════════════════════ -->
+<div class="toast-container" id="toasts"></div>
+
+<!-- ═══════════════════════════════════════════
+     MODALS
+════════════════════════════════════════════ -->
+
+<!-- ADD PROPERTY -->
+<div class="modal-overlay hidden" id="modal-property">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div><h2>Add Property</h2><p>Enter the property details below</p></div>
+      <button class="modal-close" onclick="closeModal('modal-property')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field full"><label>Property Name *</label><input id="p-name" placeholder="e.g. Flat 3B, Green Residency" /></div>
+        <div class="field"><label>Type</label>
+          <select id="p-type">
+            <option>APARTMENT</option><option>HOUSE</option><option>COMMERCIAL</option><option>PLOT</option>
+          </select>
+        </div>
+        <div class="field"><label>Status</label>
+          <select id="p-status">
+            <option>VACANT</option><option>OCCUPIED</option><option>LISTED</option>
+          </select>
+        </div>
+        <div class="field full"><label>Address *</label><input id="p-address" placeholder="Full street address" /></div>
+        <div class="field"><label>City</label><input id="p-city" placeholder="City" /></div>
+        <div class="field"><label>State</label><input id="p-state" placeholder="State" /></div>
+        <div class="field"><label>Monthly Rent (₹)</label><input id="p-rent" type="number" placeholder="22000" /></div>
+        <div class="field"><label>Rent Due Day</label><input id="p-dueday" type="number" value="1" min="1" max="28" /></div>
+        <div class="field full"><label>Notes</label><textarea id="p-notes" placeholder="Any additional notes…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-property')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProperty()">Save Property</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD TENANT -->
+<div class="modal-overlay hidden" id="modal-tenant">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div><h2>Add Tenant</h2><p>Enter the tenant's details</p></div>
+      <button class="modal-close" onclick="closeModal('modal-tenant')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field"><label>Full Name *</label><input id="t-name" placeholder="Tenant's full name" /></div>
+        <div class="field"><label>Phone *</label><input id="t-phone" placeholder="+91 98765 43210" /></div>
+        <div class="field"><label>Email</label><input id="t-email" type="email" placeholder="tenant@email.com" /></div>
+        <div class="field"><label>ID Type</label>
+          <select id="t-idtype">
+            <option value="">Select…</option>
+            <option>Aadhaar</option><option>PAN</option><option>Passport</option><option>Voter ID</option>
+          </select>
+        </div>
+        <div class="field full"><label>Emergency Contact</label><input id="t-emergency" placeholder="Name &amp; phone number" /></div>
+        <div class="field full"><label>Notes</label><textarea id="t-notes" placeholder="Any additional notes…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-tenant')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTenant()">Save Tenant</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD LEASE -->
+<div class="modal-overlay hidden" id="modal-lease">
+  <div class="modal modal-lg">
+    <div class="modal-hdr">
+      <div><h2>New Lease Agreement</h2><p>Link a tenant to a property</p></div>
+      <button class="modal-close" onclick="closeModal('modal-lease')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field"><label>Property *</label><select id="l-property"><option value="">Select…</option></select></div>
+        <div class="field"><label>Tenant *</label><select id="l-tenant"><option value="">Select…</option></select></div>
+        <div class="field"><label>Start Date *</label><input id="l-start" type="date" /></div>
+        <div class="field"><label>End Date *</label><input id="l-end" type="date" /></div>
+        <div class="field"><label>Monthly Rent (₹)</label><input id="l-rent" type="number" placeholder="22000" /></div>
+        <div class="field"><label>Security Deposit (₹)</label><input id="l-deposit" type="number" placeholder="44000" /></div>
+        <div class="field"><label>Deposit Received Date</label><input id="l-deposit-date" type="date" /></div>
+        <div class="field"><label>Lease Status</label>
+          <select id="l-status">
+            <option>ACTIVE</option><option>EXPIRED</option><option>TERMINATED</option>
+          </select>
+        </div>
+        <div class="field full"><label>Notes</label><textarea id="l-notes" placeholder="Special conditions, clauses…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-lease')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveLease()">Save Lease</button>
+    </div>
+  </div>
+</div>
+
+<!-- RECORD PAYMENT -->
+<div class="modal-overlay hidden" id="modal-payment">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div><h2>Record Payment</h2><p>Log a rent collection</p></div>
+      <button class="modal-close" onclick="closeModal('modal-payment')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field"><label>Property *</label><select id="pay-property"><option value="">Select…</option></select></div>
+        <div class="field"><label>Tenant Name</label><input id="pay-tenant" placeholder="Tenant name" /></div>
+        <div class="field"><label>For Month</label><input id="pay-month" type="month" /></div>
+        <div class="field"><label>Amount (₹) *</label><input id="pay-amount" type="number" placeholder="22000" /></div>
+        <div class="field"><label>Due Date</label><input id="pay-due" type="date" /></div>
+        <div class="field"><label>Paid Date</label><input id="pay-paid" type="date" /></div>
+        <div class="field"><label>Payment Mode</label>
+          <select id="pay-mode">
+            <option>UPI</option><option>Bank Transfer</option><option>Cash</option><option>Cheque</option><option>Online</option>
+          </select>
+        </div>
+        <div class="field"><label>Status</label>
+          <select id="pay-status">
+            <option>PAID</option><option>PENDING</option><option>OVERDUE</option><option>PARTIAL</option>
+          </select>
+        </div>
+        <div class="field full"><label>Notes</label><textarea id="pay-notes" placeholder="Reference number, transaction ID…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-payment')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePayment()">Save Payment</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD TRANSACTION -->
+<div class="modal-overlay hidden" id="modal-transaction">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div><h2>Add Transaction</h2><p>Record an income or expense</p></div>
+      <button class="modal-close" onclick="closeModal('modal-transaction')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field"><label>Date</label><input id="txn-date" type="date" /></div>
+        <div class="field"><label>Type</label>
+          <select id="txn-type"><option>INCOME</option><option>EXPENSE</option></select>
+        </div>
+        <div class="field full"><label>Description *</label><input id="txn-desc" placeholder="e.g. Rent — Flat 3B" /></div>
+        <div class="field"><label>Property</label><select id="txn-property"><option value="">Select…</option></select></div>
+        <div class="field"><label>Category</label>
+          <select id="txn-cat">
+            <option>Rent</option><option>Maintenance</option><option>Tax</option>
+            <option>Society Dues</option><option>Insurance</option><option>Repairs</option><option>Other</option>
+          </select>
+        </div>
+        <div class="field"><label>Amount (₹) *</label><input id="txn-amount" type="number" placeholder="5000" /></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-transaction')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTransaction()">Save Transaction</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW TICKET -->
+<div class="modal-overlay hidden" id="modal-ticket">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div><h2>New Repair Ticket</h2><p>Log a maintenance request</p></div>
+      <button class="modal-close" onclick="closeModal('modal-ticket')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field"><label>Property *</label><select id="tk-property"><option value="">Select…</option></select></div>
+        <div class="field"><label>Raised By</label>
+          <select id="tk-raisedby"><option>TENANT</option><option>LANDLORD</option></select>
+        </div>
+        <div class="field full"><label>Title *</label><input id="tk-title" placeholder="e.g. Leaking pipe in bathroom" /></div>
+        <div class="field full"><label>Description</label><textarea id="tk-desc" placeholder="Describe the issue in detail…"></textarea></div>
+        <div class="field"><label>Status</label>
+          <select id="tk-status">
+            <option>REQUESTED</option><option>IN_PROGRESS</option><option>COMPLETED</option>
+          </select>
+        </div>
+        <div class="field"><label>Cost (₹)</label><input id="tk-cost" type="number" placeholder="0" /></div>
+        <div class="field"><label>Cost Responsibility</label>
+          <select id="tk-resp"><option value="">N/A</option><option>TENANT</option><option>LANDLORD</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-ticket')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTicket()">Save Ticket</button>
+    </div>
+  </div>
+</div>
+
+<!-- SOCIETY PAYMENT -->
+<div class="modal-overlay hidden" id="modal-society">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div><h2>Record Society Payment</h2><p>Log quarterly maintenance dues</p></div>
+      <button class="modal-close" onclick="closeModal('modal-society')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field"><label>Property *</label><select id="soc-property"><option value="">Select…</option></select></div>
+        <div class="field"><label>Quarter</label>
+          <select id="soc-quarter">
+            <option>Q1 (Jan–Mar)</option><option>Q2 (Apr–Jun)</option>
+            <option>Q3 (Jul–Sep)</option><option>Q4 (Oct–Dec)</option>
+          </select>
+        </div>
+        <div class="field"><label>Year</label><input id="soc-year" type="number" /></div>
+        <div class="field"><label>Amount (₹) *</label><input id="soc-amount" type="number" placeholder="4800" /></div>
+        <div class="field"><label>Date Paid</label><input id="soc-date" type="date" /></div>
+        <div class="field"><label>Status</label>
+          <select id="soc-status"><option>PAID</option><option>PENDING</option><option>OVERDUE</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-society')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSociety()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- TAX RECORD -->
+<div class="modal-overlay hidden" id="modal-tax">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div><h2>Add Tax Record</h2><p>Track a property tax payment</p></div>
+      <button class="modal-close" onclick="closeModal('modal-tax')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field"><label>Property *</label><select id="tax-property"><option value="">Select…</option></select></div>
+        <div class="field"><label>Period</label><input id="tax-period" placeholder="e.g. FY 2025–26 Q1" /></div>
+        <div class="field"><label>Due Date</label><input id="tax-due" type="date" /></div>
+        <div class="field"><label>Amount (₹) *</label><input id="tax-amount" type="number" placeholder="8000" /></div>
+        <div class="field"><label>Status</label>
+          <select id="tax-status"><option>PENDING</option><option>PAID</option><option>OVERDUE</option></select>
+        </div>
+        <div class="field"><label>Paid Date</label><input id="tax-paid" type="date" /></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-tax')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTax()">Save Tax Record</button>
+    </div>
+  </div>
+</div>
+
+<!-- UPLOAD DOCUMENT -->
+<div class="modal-overlay hidden" id="modal-document">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div><h2>Upload Document</h2><p>Add to the compliance checklist</p></div>
+      <button class="modal-close" onclick="closeModal('modal-document')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field"><label>Property *</label><select id="doc-property"><option value="">Select…</option></select></div>
+        <div class="field"><label>Document Type</label>
+          <select id="doc-type">
+            <option>Rental Agreement</option><option>Registration Proof</option>
+            <option>Police Verification</option><option>Tenant ID Proof</option>
+            <option>NOC</option><option>Other</option>
+          </select>
+        </div>
+        <div class="field full"><label>Document Name *</label><input id="doc-name" placeholder="e.g. Rental Agreement Jan 2025" /></div>
+        <div class="field"><label>Upload Date</label><input id="doc-date" type="date" /></div>
+        <div class="field"><label>Status</label>
+          <select id="doc-status"><option>COMPLETED</option><option>PENDING</option></select>
+        </div>
+        <div class="field full"><label>Notes</label><textarea id="doc-notes" placeholder="Any notes about this document…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-document')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDocument()">Save Document</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRMATION -->
+<div class="modal-overlay hidden" id="modal-delete">
+  <div class="modal modal-sm">
+    <div class="modal-hdr">
+      <div><h2>Delete Item?</h2><p>This cannot be undone.</p></div>
+      <button class="modal-close" onclick="closeModal('modal-delete')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px;color:var(--ink2)">
+        Are you sure you want to permanently delete
+        <strong id="delete-item-name">this item</strong>?
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-delete')">Keep it</button>
+      <button class="btn btn-danger" onclick="confirmDelete()">Yes, Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCRIPTS
+════════════════════════════════════════════ -->
+<script src="app.js"></script>
+
+</body>
+</html>
